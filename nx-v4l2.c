@@ -337,8 +337,8 @@ static int enum_all_v4l2_devices(void)
 
 		e = find_v4l2_entry_by_name(entry_name);
 		if (!e) {
-			fprintf(stderr, "can't v4l2 entry for %s\n",
-				entry_name);
+			/* fprintf(stderr, "can't v4l2 entry for %s\n", */
+			/* 	entry_name); */
 			continue;
 		}
 
@@ -405,7 +405,7 @@ int nx_v4l2_open_device(int type, int module)
 	if (_nx_v4l2_entry_cache.cached == false) {
 		enum_all_v4l2_devices();
 		enum_all_media_entities();
-		print_all_nx_v4l2_entry();
+		/* print_all_nx_v4l2_entry(); */
 	}
 
 	entry = find_v4l2_entry(type, module);
