@@ -577,6 +577,20 @@ static int video_set_format(int fd, uint32_t w, uint32_t h, uint32_t format,
 	return ioctl(fd, VIDIOC_S_FMT, &v4l2_fmt);
 }
 
+static int video_set_format_mmap(int fd, uint32_t w, uint32_t h,
+				 uint32_t format, uint32_t buf_type)
+{
+	struct v4l2_format v4l2_fmt;
+
+	bzero(&v4l2_fmt, sizeof(v4l2_fmt));
+	v4l2_fmt.type = buf_type;
+	v4l2_fmt.fmt.pix.width = w;
+	v4l2_fmt.fmt.pix.height = h;
+	v4l2_fmt.fmt.pix.pixelformat = format;
+	v4l2_fmt.fmt.pix.field = V4L2_FIELD_ANY;
+	return ioctl(fd, VIDIOC_S_FMT, &v4l2_fmt);
+}
+
 int nx_v4l2_set_format(int fd, int type, uint32_t w, uint32_t h,
 	uint32_t format)
 {
@@ -584,6 +598,16 @@ int nx_v4l2_set_format(int fd, int type, uint32_t w, uint32_t h,
 		return subdev_set_format(fd, w, h, format);
 	else
 		return video_set_format(fd, w, h, format, get_buf_type(type));
+}
+
+int nx_v4l2_set_format_mmap(int fd, int type, uint32_t w, uint32_t h,
+			    uint32_t format)
+{
+	if (get_type_category(type) == type_category_subdev)
+		return subdev_set_format(fd, w, h, format);
+	else
+		return video_set_format_mmap(fd, w, h, format,
+					     V4L2_BUF_TYPE_VIDEO_CAPTURE);
 }
 
 static int subdev_get_format(int fd, uint32_t *w, uint32_t *h, uint32_t *format)
@@ -666,6 +690,16 @@ int nx_v4l2_set_crop(int fd, int type, uint32_t x, uint32_t y,
 		return subdev_set_crop(fd, x, y, w, h);
 	else
 		return video_set_crop(fd, x, y, w, h, get_buf_type(type));
+}
+
+int nx_v4l2_set_crop_mmap(int fd, int type, uint32_t x, uint32_t y,
+			  uint32_t w, uint32_t h)
+{
+	if (get_type_category(type) == type_category_subdev)
+		return subdev_set_crop(fd, x, y, w, h);
+	else
+		return video_set_crop(fd, x, y, w, h,
+				      V4L2_BUF_TYPE_VIDEO_CAPTURE);
 }
 
 static int subdev_get_crop(int fd, uint32_t *x, uint32_t *y, uint32_t *w,
@@ -752,6 +786,20 @@ int nx_v4l2_reqbuf(int fd, int type, int count)
 	return ioctl(fd, VIDIOC_REQBUFS, &req);
 }
 
+int nx_v4l2_reqbuf_mmap(int fd, int type, int count)
+{
+	struct v4l2_requestbuffers req;
+
+	if (get_type_category(type) == type_category_subdev)
+		return -EINVAL;
+
+	bzero(&req, sizeof(req));
+	req.count = count;
+	req.memory = V4L2_MEMORY_MMAP;
+	req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	return ioctl(fd, VIDIOC_REQBUFS, &req);
+}
+
 #define MAX_PLANES	3
 int nx_v4l2_qbuf(int fd, int type, int plane_num, int index, int *fds,
 		 int *sizes)
@@ -779,6 +827,22 @@ int nx_v4l2_qbuf(int fd, int type, int plane_num, int index, int *fds,
 		v4l2_buf.m.planes[i].m.fd = fds[i];
 		v4l2_buf.m.planes[i].length = sizes[i];
 	}
+
+	return ioctl(fd, VIDIOC_QBUF, &v4l2_buf);
+}
+
+int nx_v4l2_qbuf_mmap(int fd, int type, int index)
+{
+	struct v4l2_buffer v4l2_buf;
+	int i;
+
+	if (get_type_category(type) == type_category_subdev)
+		return -EINVAL;
+
+	bzero(&v4l2_buf, sizeof(v4l2_buf));
+	v4l2_buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	v4l2_buf.memory = V4L2_MEMORY_MMAP;
+	v4l2_buf.index = index;
 
 	return ioctl(fd, VIDIOC_QBUF, &v4l2_buf);
 }
@@ -813,6 +877,27 @@ int nx_v4l2_dqbuf(int fd, int type, int plane_num, int *index)
 	return 0;
 }
 
+int nx_v4l2_dqbuf_mmap(int fd, int type, int *index)
+{
+	int ret;
+	struct v4l2_buffer v4l2_buf;
+
+	if (get_type_category(type) == type_category_subdev)
+		return -EINVAL;
+
+	bzero(&v4l2_buf, sizeof(v4l2_buf));
+	v4l2_buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	v4l2_buf.memory = V4L2_MEMORY_MMAP;
+
+	ret = ioctl(fd, VIDIOC_DQBUF, &v4l2_buf);
+	if (ret)
+		return ret;
+
+	*index = v4l2_buf.index;
+
+	return 0;
+}
+
 int nx_v4l2_streamon(int fd, int type)
 {
 	uint32_t buf_type;
@@ -824,6 +909,17 @@ int nx_v4l2_streamon(int fd, int type)
 	return ioctl(fd, VIDIOC_STREAMON, &buf_type);
 }
 
+int nx_v4l2_streamon_mmap(int fd, int type)
+{
+	uint32_t buf_type;
+
+	if (get_type_category(type) == type_category_subdev)
+		return -EINVAL;
+
+	buf_type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	return ioctl(fd, VIDIOC_STREAMON, &buf_type);
+}
+
 int nx_v4l2_streamoff(int fd, int type)
 {
 	uint32_t buf_type;
@@ -832,4 +928,30 @@ int nx_v4l2_streamoff(int fd, int type)
 
 	buf_type = get_buf_type(type);
 	return ioctl(fd, VIDIOC_STREAMOFF, &buf_type);
+}
+
+int nx_v4l2_streamoff_mmap(int fd, int type)
+{
+	uint32_t buf_type;
+	if (get_type_category(type) == type_category_subdev)
+		return -EINVAL;
+
+	buf_type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	return ioctl(fd, VIDIOC_STREAMOFF, &buf_type);
+}
+
+int nx_v4l2_query_buf_mmap(int fd, int type, int index,
+			   struct v4l2_buffer *v4l2_buf)
+{
+	int ret;
+	/* struct v4l2_buffer v4l2_buf; */
+
+	if (get_type_category(type) == type_category_subdev)
+		return -EINVAL;
+
+	bzero(v4l2_buf, sizeof(*v4l2_buf));
+	v4l2_buf->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	v4l2_buf->memory = V4L2_MEMORY_MMAP;
+	v4l2_buf->index = index;
+	return ioctl(fd, VIDIOC_QUERYBUF, v4l2_buf);
 }
