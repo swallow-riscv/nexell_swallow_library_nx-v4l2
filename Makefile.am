@@ -10,6 +10,7 @@ libnx_v4l2_la_SOURCES = \
 libnx_v4l2includedir = ${includedir}
 libnx_v4l2include_HEADERS = \
 	nx-v4l2.h \
-	media-bus-format.h
+	media-bus-format.h \
+	mm_types.h
 
 

@@ -1,6 +1,6 @@
 Name:    nx-v4l2
 Version: 0.0.1
-Release: 2
+Release: 3
 License: Apache 2.0
 Summary: Nexell v4l2 library
 Group: Development/Libraries
@@ -51,3 +51,4 @@ cp %{_builddir}/%{name}-%{version}/nx-v4l2.h %{buildroot}/usr/include
 %files devel
 %{_includedir}/media-bus-format.h
 %{_includedir}/nx-v4l2.h
+%{_includedir}/mm_types.h
