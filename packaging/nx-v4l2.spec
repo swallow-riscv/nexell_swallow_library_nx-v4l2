@@ -1,6 +1,6 @@
 Name:    nx-v4l2
 Version: 0.0.1
-Release: 3
+Release: 4
 License: Apache 2.0
 Summary: Nexell v4l2 library
 Group: Development/Libraries
