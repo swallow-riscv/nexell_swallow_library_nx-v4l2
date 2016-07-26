@@ -877,6 +877,39 @@ int nx_v4l2_dqbuf(int fd, int type, int plane_num, int *index)
 	return 0;
 }
 
+int nx_v4l2_dqbuf_with_timestamp(int fd, int type, int plane_num, int *index,
+				 struct timeval *timeval)
+{
+	int ret;
+	struct v4l2_buffer v4l2_buf;
+	struct v4l2_plane planes[MAX_PLANES];
+
+	if (get_type_category(type) == type_category_subdev)
+		return -EINVAL;
+
+	if (plane_num > MAX_PLANES) {
+		fprintf(stderr, "plane_num(%d) is over MAX_PLANES\n",
+			plane_num);
+		return -EINVAL;
+	}
+
+	bzero(&v4l2_buf, sizeof(v4l2_buf));
+	v4l2_buf.m.planes = planes;
+	v4l2_buf.type = get_buf_type(type);
+	v4l2_buf.memory = V4L2_MEMORY_DMABUF;
+	v4l2_buf.length = plane_num;
+
+	ret = ioctl(fd, VIDIOC_DQBUF, &v4l2_buf);
+	if (ret)
+		return ret;
+
+	*index = v4l2_buf.index;
+
+	memcpy(timeval, &v4l2_buf.timestamp, sizeof(*timeval));
+
+	return 0;
+}
+
 int nx_v4l2_dqbuf_mmap(int fd, int type, int *index)
 {
 	int ret;
@@ -894,6 +927,30 @@ int nx_v4l2_dqbuf_mmap(int fd, int type, int *index)
 		return ret;
 
 	*index = v4l2_buf.index;
+
+	return 0;
+}
+
+int nx_v4l2_dqbuf_mmap_with_timestamp(int fd, int type, int *index,
+				      struct timeval *timeval)
+{
+	int ret;
+	struct v4l2_buffer v4l2_buf;
+
+	if (get_type_category(type) == type_category_subdev)
+		return -EINVAL;
+
+	bzero(&v4l2_buf, sizeof(v4l2_buf));
+	v4l2_buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	v4l2_buf.memory = V4L2_MEMORY_MMAP;
+
+	ret = ioctl(fd, VIDIOC_DQBUF, &v4l2_buf);
+	if (ret)
+		return ret;
+
+	*index = v4l2_buf.index;
+
+	memcpy(timeval, &v4l2_buf.timestamp, sizeof(*timeval));
 
 	return 0;
 }

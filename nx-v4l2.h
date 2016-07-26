@@ -55,6 +55,8 @@ int nx_v4l2_reqbuf(int fd, int type, int count);
 int nx_v4l2_qbuf(int fd, int type, int plane_num, int index, int *fds,
 		 int *sizes);
 int nx_v4l2_dqbuf(int fd, int type, int plane_num, int *index);
+int nx_v4l2_dqbuf_with_timestamp(int fd, int type, int plane_num, int *index,
+				 struct timeval *timeval);
 int nx_v4l2_streamon(int fd, int type);
 int nx_v4l2_streamoff(int fd, int type);
 
@@ -66,6 +68,8 @@ int nx_v4l2_set_crop_mmap(int fd, int type, uint32_t x, uint32_t y, uint32_t w,
 int nx_v4l2_reqbuf_mmap(int fd, int type, int count);
 int nx_v4l2_qbuf_mmap(int fd, int type, int index);
 int nx_v4l2_dqbuf_mmap(int fd, int type, int *index);
+int nx_v4l2_dqbuf_mmap_with_timestamp(int fd, int type, int *index,
+				      struct timeval *timeval);
 int nx_v4l2_streamon_mmap(int fd, int type);
 int nx_v4l2_streamoff_mmap(int fd, int type);
 int nx_v4l2_query_buf_mmap(int fd, int type, int index,
