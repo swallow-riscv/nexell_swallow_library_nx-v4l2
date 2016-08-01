@@ -1,7 +1,7 @@
 Name:    nx-v4l2
 Version: 0.0.1
 Release: 4
-License: Apache 2.0
+License: LGPLv2+
 Summary: Nexell v4l2 library
 Group: Development/Libraries
 Source:  %{name}-%{version}.tar.gz
@@ -47,8 +47,10 @@ cp %{_builddir}/%{name}-%{version}/nx-v4l2.h %{buildroot}/usr/include
 %files
 %{_libdir}/libnx_v4l2.so
 %{_libdir}/libnx_v4l2.so.*
+%license LICENSE.LGPLv2+
 
 %files devel
 %{_includedir}/media-bus-format.h
 %{_includedir}/nx-v4l2.h
 %{_includedir}/mm_types.h
+%license LICENSE.LGPLv2+
