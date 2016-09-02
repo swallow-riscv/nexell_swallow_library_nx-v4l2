@@ -282,7 +282,7 @@ static void enum_camera_sensor(void)
 					c = &buf[strlen("is_mipi:")];
 					e->is_mipi = *c - '0';
 					c += 7; /* ,name: */
-					strcpy(e->devname, c);
+					strncpy(e->devname, c, DEVNAME_SIZE);
 				}
 			}
 		}
@@ -316,6 +316,7 @@ static int enum_all_v4l2_devices(void)
 			continue;
 
 		lstat(items[i]->d_name, &fstat);
+
 		memset(entry_sys_path, 0, SYSFS_PATH_SIZE);
 		memset(entry_name, 0, DEVNAME_SIZE);
 
