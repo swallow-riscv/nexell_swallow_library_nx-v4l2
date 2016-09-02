@@ -315,7 +315,10 @@ static int enum_all_v4l2_devices(void)
 		    (!strcmp(items[i]->d_name, "..")))
 			continue;
 
-		lstat(items[i]->d_name, &fstat);
+		if (lstat(items[i]->d_name, &fstat) < 0) {
+			fprintf(stderr, "lstat %s ", items[i]->d_name);
+			continue;
+		}
 
 		memset(entry_sys_path, 0, SYSFS_PATH_SIZE);
 		memset(entry_name, 0, DEVNAME_SIZE);
