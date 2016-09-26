@@ -1,6 +1,6 @@
 Name:    nx-v4l2
-Version: 0.0.1
-Release: 4
+Version: 1.0.0
+Release: 1
 License: LGPLv2+
 Summary: Nexell v4l2 library
 Group: Development/Libraries
