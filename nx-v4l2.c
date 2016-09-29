@@ -1016,3 +1016,10 @@ int nx_v4l2_query_buf_mmap(int fd, int type, int index,
 	v4l2_buf->index = index;
 	return ioctl(fd, VIDIOC_QUERYBUF, v4l2_buf);
 }
+
+int nx_v4l2_set_parm(int fd, int type, struct v4l2_streamparm *parm)
+{
+	uint32_t buf_type;
+	parm->type = get_buf_type(type);
+	return ioctl(fd, VIDIOC_S_PARM, parm);
+}
