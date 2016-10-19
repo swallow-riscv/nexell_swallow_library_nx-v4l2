@@ -59,6 +59,7 @@ int nx_v4l2_dqbuf_with_timestamp(int fd, int type, int plane_num, int *index,
 				 struct timeval *timeval);
 int nx_v4l2_streamon(int fd, int type);
 int nx_v4l2_streamoff(int fd, int type);
+int nx_v4l2_set_parm(int fd, int type, struct v4l2_streamparm *parm);
 
 /* API for mmap type */
 int nx_v4l2_set_format_mmap(int fd, int type, uint32_t w, uint32_t h,
