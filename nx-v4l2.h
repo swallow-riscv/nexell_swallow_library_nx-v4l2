@@ -43,6 +43,8 @@ int nx_v4l2_link(bool link, int module, int src_type, int src_pad,
 		 int sink_type, int sink_pad);
 int nx_v4l2_set_format(int fd, int type, uint32_t w, uint32_t h,
 		       uint32_t format);
+int nx_v4l2_set_format_with_field(int fd, int type, uint32_t w, uint32_t h,
+				uint32_t format, uint32_t field);
 int nx_v4l2_get_format(int fd, int type, uint32_t *w, uint32_t *h,
 		       uint32_t *format);
 int nx_v4l2_set_crop(int fd, int type, uint32_t x, uint32_t y, uint32_t w,

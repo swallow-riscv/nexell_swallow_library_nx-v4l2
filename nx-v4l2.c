@@ -581,6 +581,20 @@ static int video_set_format(int fd, uint32_t w, uint32_t h, uint32_t format,
 	return ioctl(fd, VIDIOC_S_FMT, &v4l2_fmt);
 }
 
+static int video_set_format_with_field(int fd, uint32_t w, uint32_t h, uint32_t format,
+			    uint32_t buf_type, uint32_t field)
+{
+	struct v4l2_format v4l2_fmt;
+
+	bzero(&v4l2_fmt, sizeof(v4l2_fmt));
+	v4l2_fmt.type = buf_type;
+	v4l2_fmt.fmt.pix_mp.width = w;
+	v4l2_fmt.fmt.pix_mp.height = h;
+	v4l2_fmt.fmt.pix_mp.pixelformat = format;
+	v4l2_fmt.fmt.pix_mp.field = field;
+	return ioctl(fd, VIDIOC_S_FMT, &v4l2_fmt);
+}
+
 static int video_set_format_mmap(int fd, uint32_t w, uint32_t h,
 				 uint32_t format, uint32_t buf_type)
 {
@@ -602,6 +616,15 @@ int nx_v4l2_set_format(int fd, int type, uint32_t w, uint32_t h,
 		return subdev_set_format(fd, w, h, format);
 	else
 		return video_set_format(fd, w, h, format, get_buf_type(type));
+}
+
+int nx_v4l2_set_format_with_field(int fd, int type, uint32_t w, uint32_t h,
+	uint32_t format, uint32_t field)
+{
+	if (get_type_category(type) == type_category_subdev)
+		return subdev_set_format(fd, w, h, format);
+	else
+		return video_set_format_with_field(fd, w, h, format, get_buf_type(type), field);
 }
 
 int nx_v4l2_set_format_mmap(int fd, int type, uint32_t w, uint32_t h,
