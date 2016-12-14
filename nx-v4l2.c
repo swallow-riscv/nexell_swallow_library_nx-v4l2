@@ -441,6 +441,17 @@ int nx_v4l2_open_device(int type, int module)
 
 }
 
+int nx_v4l2_cleanup(void)
+{
+	struct nx_v4l2_entry_cache *cache = &_nx_v4l2_entry_cache;
+
+	if (cache->media_fd >= 0) {
+		close(cache->media_fd);
+		cache->media_fd = -1;
+	}
+	cache->cached = false;
+}
+
 bool nx_v4l2_is_mipi_camera(int module)
 {
 	struct nx_v4l2_entry *e;

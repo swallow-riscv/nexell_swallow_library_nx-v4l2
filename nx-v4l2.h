@@ -39,6 +39,7 @@ enum {
 };
 
 int nx_v4l2_open_device(int type, int module);
+int nx_v4l2_cleanup(void);
 bool nx_v4l2_is_mipi_camera(int module);
 int nx_v4l2_link(bool link, int module, int src_type, int src_pad,
 		 int sink_type, int sink_pad);
