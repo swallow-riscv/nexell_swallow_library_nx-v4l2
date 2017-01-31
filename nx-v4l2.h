@@ -34,6 +34,7 @@ enum {
 	nx_csi_subdev,
 	nx_clipper_video,
 	nx_decimator_video,
+	nx_mpegts_video,
 	nx_v4l2_max
 };
 
@@ -53,6 +54,8 @@ int nx_v4l2_get_crop(int fd, int type, uint32_t *x, uint32_t *y, uint32_t *w,
 		     uint32_t *h);
 int nx_v4l2_set_ctrl(int fd, int type, uint32_t ctrl_id, int value);
 int nx_v4l2_get_ctrl(int fd, int type, uint32_t ctrl_id, int *value);
+int nx_v4l2_set_ext_ctrl(int fd, uint32_t ctrl_id, void *arg);
+int nx_v4l2_get_ext_ctrl(int fd, uint32_t ctrl_id, void *arg);
 int nx_v4l2_reqbuf(int fd, int type, int count);
 int nx_v4l2_qbuf(int fd, int type, int plane_num, int index, int *fds,
 		 int *sizes);

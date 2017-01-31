@@ -64,6 +64,7 @@ enum {
 
 #define MAX_CAMERA_INSTANCE_NUM	3
 #define MAX_CSI_INSTANCE_NUM	1
+#define MAX_MPEGTS_INSTANCE_NUM	1
 static struct nx_v4l2_entry_cache {
 	int media_fd;
 	bool cached;
@@ -73,6 +74,7 @@ static struct nx_v4l2_entry_cache {
 	struct nx_v4l2_entry nx_csi_subdev[MAX_CSI_INSTANCE_NUM];
 	struct nx_v4l2_entry nx_clipper_video[MAX_CAMERA_INSTANCE_NUM];
 	struct nx_v4l2_entry nx_decimator_video[MAX_CAMERA_INSTANCE_NUM];
+	struct nx_v4l2_entry nx_mpegts_video[MAX_MPEGTS_INSTANCE_NUM];
 } _nx_v4l2_entry_cache = {
 	.media_fd = -1,
 	.cached	= false,
@@ -154,6 +156,11 @@ static void print_all_nx_v4l2_entry(void)
 		entry = &cache->nx_decimator_video[i];
 		print_nx_v4l2_entry(entry);
 	}
+
+	for (i = 0; i < MAX_MPEGTS_INSTANCE_NUM; i++) {
+		entry = &cache->nx_mpegts_video[i];
+		print_nx_v4l2_entry(entry);
+	}
 }
 
 static struct nx_v4l2_entry *find_v4l2_entry(int type, int module)
@@ -173,6 +180,8 @@ static struct nx_v4l2_entry *find_v4l2_entry(int type, int module)
 		return &cache->nx_clipper_video[module];
 	case nx_decimator_video:
 		return &cache->nx_decimator_video[module];
+	case nx_mpegts_video:
+		return &cache->nx_mpegts_video[module];
 	default:
 		return NULL;
 	}
@@ -183,6 +192,7 @@ static struct nx_v4l2_entry *find_v4l2_entry(int type, int module)
 #define NX_CSI_SUBDEV_NAME		"nx-csi"
 #define NX_CLIPPER_VIDEO_NAME		"VIDEO CLIPPER"
 #define NX_DECIMATOR_VIDEO_NAME		"VIDEO DECIMATOR"
+#define NX_MPEGTS_VIDEO_NAME		"VIDEO MPEGTS"
 
 static int get_type_by_name(char *type_name)
 {
@@ -201,6 +211,9 @@ static int get_type_by_name(char *type_name)
 	} else if (!strncmp(type_name, NX_DECIMATOR_VIDEO_NAME,
 			    strlen(NX_DECIMATOR_VIDEO_NAME))) {
 		return nx_decimator_video;
+	} else if (!strncmp(type_name, NX_MPEGTS_VIDEO_NAME,
+			    strlen(NX_MPEGTS_VIDEO_NAME))) {
+		return nx_mpegts_video;
 	} else {
 		/* fprintf(stderr, "can't find type for name %s\n", type_name); */
 		return -EINVAL;
@@ -409,7 +422,7 @@ int nx_v4l2_open_device(int type, int module)
 	if (_nx_v4l2_entry_cache.cached == false) {
 		enum_all_v4l2_devices();
 		enum_all_media_entities();
-		/* print_all_nx_v4l2_entry(); */
+		/*	print_all_nx_v4l2_entry();	*/
 	}
 
 	entry = find_v4l2_entry(type, module);
@@ -418,12 +431,14 @@ int nx_v4l2_open_device(int type, int module)
 
 		if (fd < 0)
 			fprintf(stderr, "open failed for %s\n", entry->devname);
+
 		return fd;
 	} else {
 		fprintf(stderr, "can't find device for type %d, module %d\n",
 			type, module);
 		return -ENODEV;
 	}
+
 }
 
 bool nx_v4l2_is_mipi_camera(int module)
@@ -782,6 +797,7 @@ int nx_v4l2_set_ctrl(int fd, int type, uint32_t ctrl_id, int value)
 	bzero(&ctrl, sizeof(ctrl));
 	ctrl.id = ctrl_id;
 	ctrl.value = value;
+
 	return ioctl(fd, VIDIOC_S_CTRL, &ctrl);
 }
 
@@ -796,6 +812,36 @@ int nx_v4l2_get_ctrl(int fd, int type, uint32_t ctrl_id, int *value)
 	if (ret)
 		return ret;
 	*value = ctrl.value;
+	return 0;
+}
+
+int nx_v4l2_set_ext_ctrl(int fd, uint32_t ctrl_id, void *arg)
+{
+	struct v4l2_ext_control ext_ctrl;
+	struct v4l2_ext_controls ext_ctrls;
+
+	bzero(&ext_ctrl, sizeof(ext_ctrl));
+	bzero(&ext_ctrls, sizeof(ext_ctrls));
+
+	ext_ctrl.id = ctrl_id;
+	ext_ctrl.ptr = arg;
+	ext_ctrls.controls = &ext_ctrl;
+
+	return ioctl(fd, VIDIOC_S_EXT_CTRLS, &ext_ctrls);
+}
+
+int nx_v4l2_get_ext_ctrl(int fd, uint32_t ctrl_id, void *arg)
+{
+	int ret;
+	struct v4l2_ext_controls ext_ctrl;
+
+	bzero(&ext_ctrl, sizeof(ext_ctrl));
+	ext_ctrl.controls->id = ctrl_id;
+	ret = ioctl(fd, VIDIOC_G_EXT_CTRLS, &ext_ctrl);
+	if (ret)
+		return ret;
+
+	arg = ext_ctrl.controls->ptr;
 	return 0;
 }
 
@@ -1037,6 +1083,7 @@ int nx_v4l2_query_buf_mmap(int fd, int type, int index,
 	v4l2_buf->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 	v4l2_buf->memory = V4L2_MEMORY_MMAP;
 	v4l2_buf->index = index;
+
 	return ioctl(fd, VIDIOC_QUERYBUF, v4l2_buf);
 }
 
